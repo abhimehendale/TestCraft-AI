@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TestCraft AI</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="page-shell">
+      <section class="hero-card">
+        <div class="hero-copy">
+          <span class="eyebrow">Screenshot to test cases</span>
+          <h1>Upload a UI screenshot and generate QA cases in a clean table.</h1>
+          <p>
+            Drop in a target-screen screenshot, let the model inspect the interface, and
+            get structured test cases with priorities, steps, and expected results.
+          </p>
+          <div class="hero-badges">
+            <span>AI-backed analysis</span>
+            <span>Tabular output</span>
+            <span>CSV + DOCX export</span>
+          </div>
+        </div>
+
+        <div class="upload-card">
+          <div class="upload-dropzone" id="dropzone">
+            <input id="fileInput" type="file" accept="image/*" multiple />
+            <div class="upload-art">
+              <div class="upload-icon">↗</div>
+              <strong>Drop one or more screenshots here</strong>
+              <p>or click to browse PNG, JPG, or WebP files. We will build one test suite.</p>
+            </div>
+          </div>
+
+          <div class="preview-wrap hidden" id="previewWrap">
+            <div class="preview-meta">
+              <div>
+                <span class="label">Selected files</span>
+                <strong id="fileName">None</strong>
+              </div>
+              <button class="secondary-button" id="clearButton" type="button">Remove all</button>
+            </div>
+            <div class="preview-grid" id="previewGrid"></div>
+          </div>
+
+          <button class="primary-button" id="analyzeButton" type="button" disabled>
+            Generate test suite
+          </button>
+
+          <p class="status" id="statusText">
+            Upload one or more screenshots to start analyzing.
+          </p>
+        </div>
+      </section>
+
+      <section class="results-card">
+        <div class="results-header">
+          <div>
+            <span class="eyebrow">Output</span>
+            <h2>Generated test cases</h2>
+          </div>
+          <div class="toolbar">
+            <button class="secondary-button" id="addButton" type="button" disabled>
+              Add Test Case
+            </button>
+            <button class="secondary-button" id="copyTableButton" type="button" disabled>
+              Copy Table
+            </button>
+            <button class="secondary-button" id="docxButton" type="button" disabled>
+              Export DOCX
+            </button>
+            <button class="secondary-button" id="downloadButton" type="button" disabled>
+              Download CSV
+            </button>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Sources</th>
+                <th>ID</th>
+                <th>Title</th>
+                <th>Module</th>
+                <th>Priority</th>
+                <th>Severity</th>
+                <th>Preconditions</th>
+                <th>Steps</th>
+                <th>Expected result</th>
+                <th>Automation</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="resultsBody">
+              <tr class="empty-row">
+                <td colspan="11">
+                  No test cases yet. Upload one or more screenshots and click Generate test suite.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="source-note" id="sourceNote">
+          The generated rows will appear here.
+        </div>
+      </section>
+    </main>
+
+    <script src="/app.js" type="module"></script>
+  </body>
+</html>
