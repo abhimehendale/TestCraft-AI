@@ -52,7 +52,7 @@ Requirements:
 - Treat multiple screenshots as one end-to-end flow when they belong together.
 - Generate a deep suite rather than a shallow list.
 - Do not stop at 11 or any other arbitrary count.
-- For complex UI, produce 30 to 60 test cases.
+- Generate as many test cases as the screenshots justify, with no fixed minimum or maximum count.
 - For each required field, include happy path, invalid/missing input, and boundary/edge coverage.
 - For each dropdown, test default value, option coverage, keyboard behavior, and persistence.
 - For each upload area, test supported files, rejected files, multiple files, replacement/removal, cancel, and size limits if visible or implied.

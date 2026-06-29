@@ -371,7 +371,7 @@ function buildClientSupplementalCases(existingCases, fieldInventory, sourceLabel
   const seenTitles = new Set(existingCases.map((testCase) => String(testCase.title || "").toLowerCase()));
   const supplemental = [];
   const requiredCount = inventory.filter((field) => field.required).length;
-  const targetCount = Math.max(30, Math.min(60, inventory.length * 4 + requiredCount * 2 + sources.length * 6));
+  const targetCount = Math.max(0, inventory.length * 4 + requiredCount * 2 + sources.length * 6);
   let nextId = nextIdFromList(existingCases);
   let nextNumber = Number((/^TC-(\d+)$/.exec(nextId) || [null, "1"])[1]);
 
