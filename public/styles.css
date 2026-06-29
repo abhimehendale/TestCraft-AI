@@ -74,6 +74,9 @@ input {
   line-height: 0.96;
   max-width: 11ch;
   margin-top: 10px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
 }
 
 .hero-copy p {
@@ -162,6 +165,18 @@ input {
   color: #fff;
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
   box-shadow: 0 14px 28px rgba(24, 78, 119, 0.26);
+}
+
+.title-mark {
+  flex: 0 0 auto;
+  width: 42px;
+  height: 42px;
+  margin-top: 4px;
+  border-radius: 14px;
+  background:
+    url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"%3E%3Crect width="64" height="64" rx="16" fill="%23184e77"/%3E%3Cpath d="M16 46L29 18h6l13 28h-7l-2.7-6h-15.6L20 46h-4zm11.2-11h9.6L32 24.8 27.2 35z" fill="%23fff"/%3E%3Cpath d="M41 20h7v24h-7z" fill="%23b85c38"/%3E%3C/svg%3E')
+    center/cover no-repeat;
+  box-shadow: 0 14px 28px rgba(24, 78, 119, 0.18);
 }
 
 .upload-art strong {
@@ -429,10 +444,19 @@ tbody tr:hover {
 
 .actions-cell {
   white-space: nowrap;
-  display: flex;
-  align-items: flex-start;
+}
+
+.actions-stack {
+  display: inline-grid;
+  grid-template-columns: repeat(2, auto);
   gap: 8px;
-  flex-wrap: wrap;
+  align-items: start;
+  justify-items: start;
+}
+
+.actions-stack .row-delete-button {
+  grid-column: 1 / -1;
+  justify-self: start;
 }
 
 .row-action-button,
@@ -477,6 +501,29 @@ tbody tr:hover {
 
 .row-delete-button:hover {
   background: rgba(184, 92, 56, 0.14);
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translate(-50%, 16px);
+  background: rgba(29, 27, 22, 0.96);
+  color: #fffaf0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  padding: 10px 16px;
+  font-size: 0.92rem;
+  box-shadow: 0 16px 40px rgba(29, 27, 22, 0.22);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 160ms ease, transform 160ms ease;
+  z-index: 40;
+}
+
+.toast.visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
 }
 
 .hidden {

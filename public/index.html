@@ -15,7 +15,10 @@
       <section class="hero-card">
         <div class="hero-copy">
           <span class="eyebrow">Screenshot to test cases</span>
-          <h1>Upload a UI screenshot and generate QA cases in a clean table.</h1>
+          <h1>
+            <span class="title-mark" aria-hidden="true"></span>
+            Upload a UI screenshot and generate QA cases in a clean table.
+          </h1>
           <p>
             Drop in a target-screen screenshot, let the model inspect the interface, and
             get structured test cases with priorities, steps, and expected results.
@@ -112,6 +115,7 @@
       </section>
     </main>
 
+    <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
     <script src="/config.js"></script>
     <script src="/app.js" type="module"></script>
   </body>

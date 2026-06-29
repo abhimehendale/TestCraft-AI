@@ -12,6 +12,7 @@ const statusText = document.getElementById("statusText");
 const resultsBody = document.getElementById("resultsBody");
 const sourceNote = document.getElementById("sourceNote");
 const downloadButton = document.getElementById("downloadButton");
+const toast = document.getElementById("toast");
 const appConfig = window.__TESTCRAFT_CONFIG__ || {};
 const apiBaseUrl = typeof appConfig.apiBaseUrl === "string" ? appConfig.apiBaseUrl.trim() : "";
 
@@ -59,6 +60,21 @@ function escapeXml(value) {
 function setStatus(message, kind = "info") {
   statusText.textContent = message;
   statusText.dataset.kind = kind;
+}
+
+let toastTimer = null;
+
+function showToast(message) {
+  if (!toast) {
+    return;
+  }
+
+  toast.textContent = message;
+  toast.classList.add("visible");
+  window.clearTimeout(toastTimer);
+  toastTimer = window.setTimeout(() => {
+    toast.classList.remove("visible");
+  }, 1800);
 }
 
 function stripFileExtension(filename) {
@@ -213,9 +229,11 @@ function renderRow(testCase, index) {
         <td>${formatDisplayValue(testCase.expected_result)}</td>
         <td>${formatDisplayValue(testCase.automation_candidate)}</td>
         <td class="actions-cell">
-          <button class="row-action-button" type="button" data-action="edit-row" data-index="${index}" aria-label="Edit test case ${escapeHtml(testCase.id)}">✎</button>
-          <button class="row-copy-button" type="button" data-action="copy-row" data-index="${index}" aria-label="Copy test case ${escapeHtml(testCase.id)}">⧉</button>
-          <button class="row-delete-button" type="button" data-action="delete-row" data-index="${index}">Delete</button>
+          <div class="actions-stack">
+            <button class="row-action-button" type="button" data-action="edit-row" data-index="${index}" aria-label="Edit test case ${escapeHtml(testCase.id)}">✎</button>
+            <button class="row-copy-button" type="button" data-action="copy-row" data-index="${index}" aria-label="Copy test case ${escapeHtml(testCase.id)}">⧉</button>
+            <button class="row-delete-button" type="button" data-action="delete-row" data-index="${index}">Delete</button>
+          </div>
         </td>
       </tr>
     `;
@@ -245,10 +263,12 @@ function renderRow(testCase, index) {
         </select>
       </td>
       <td class="actions-cell">
-        <button class="row-save-button" type="button" data-action="save-row" data-index="${index}">Save</button>
-        <button class="row-cancel-button" type="button" data-action="cancel-row" data-index="${index}">Cancel</button>
-        <button class="row-copy-button" type="button" data-action="copy-row" data-index="${index}" aria-label="Copy test case ${escapeHtml(testCase.id)}">⧉</button>
-        <button class="row-delete-button" type="button" data-action="delete-row" data-index="${index}">Delete</button>
+        <div class="actions-stack">
+          <button class="row-save-button" type="button" data-action="save-row" data-index="${index}">Save</button>
+          <button class="row-cancel-button" type="button" data-action="cancel-row" data-index="${index}">Cancel</button>
+          <button class="row-copy-button" type="button" data-action="copy-row" data-index="${index}" aria-label="Copy test case ${escapeHtml(testCase.id)}">⧉</button>
+          <button class="row-delete-button" type="button" data-action="delete-row" data-index="${index}">Delete</button>
+        </div>
       </td>
     </tr>
   `;
@@ -826,6 +846,7 @@ async function copyRow(index) {
 
   await copyTextToClipboard(toSingleRowTabbedText(snapshot));
   setStatus(`Copied ${snapshot.id || `row ${index + 1}`} to the clipboard.`, "success");
+  showToast("Row has been copied");
 }
 
 async function copyEntireTable() {
