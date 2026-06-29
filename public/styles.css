@@ -69,6 +69,13 @@ input {
   letter-spacing: -0.03em;
 }
 
+.hero-topline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 22px;
+}
+
 .brand-lockup {
   display: inline-flex;
   align-items: center;
@@ -76,18 +83,25 @@ input {
 }
 
 .brand-name {
-  font-size: 0.9rem;
+  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+  font-size: 0.86rem;
   font-weight: 800;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--accent-2);
+}
+
+.hero-topline .eyebrow {
+  margin-top: 2px;
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
 }
 
 .hero-copy h1 {
   font-size: clamp(2.4rem, 5vw, 4.7rem);
   line-height: 0.96;
   max-width: 11ch;
-  margin-top: 14px;
+  margin-top: 18px;
 }
 
 .hero-copy p {
@@ -180,9 +194,9 @@ input {
 
 .title-mark {
   flex: 0 0 auto;
-  width: 42px;
-  height: 42px;
-  margin-top: 4px;
+  width: 54px;
+  height: 54px;
+  margin-top: 0;
   border-radius: 14px;
   background:
     url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"%3E%3Crect width="64" height="64" rx="16" fill="%23184e77"/%3E%3Cpath d="M16 46L29 18h6l13 28h-7l-2.7-6h-15.6L20 46h-4zm11.2-11h9.6L32 24.8 27.2 35z" fill="%23fff"/%3E%3Cpath d="M41 20h7v24h-7z" fill="%23b85c38"/%3E%3C/svg%3E')
@@ -565,6 +579,20 @@ tbody tr:hover {
 
   .hero-card {
     padding: 20px;
+  }
+
+  .hero-topline {
+    gap: 12px 16px;
+  }
+
+  .title-mark {
+    width: 48px;
+    height: 48px;
+    border-radius: 13px;
+  }
+
+  .brand-name {
+    letter-spacing: 0.14em;
   }
 
   .upload-card,
