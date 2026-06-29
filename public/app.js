@@ -12,9 +12,10 @@ const statusText = document.getElementById("statusText");
 const resultsBody = document.getElementById("resultsBody");
 const sourceNote = document.getElementById("sourceNote");
 const downloadButton = document.getElementById("downloadButton");
+const appConfig = window.__TESTCRAFT_CONFIG__ || {};
+const apiBaseUrl = typeof appConfig.apiBaseUrl === "string" ? appConfig.apiBaseUrl.trim() : "";
 
 const TABLE_HEADERS = [
-  "Sources",
   "ID",
   "Title",
   "Module",
@@ -93,6 +94,14 @@ function buildExportBaseName() {
       : fileCandidate || suiteCandidate || "test-suite";
   const shortened = preferredName.slice(0, 38).replace(/-+$/g, "") || "test-suite";
   return `${shortened}-${formatDateStamp()}`;
+}
+
+function buildApiUrl(pathname) {
+  if (apiBaseUrl) {
+    return new URL(pathname, apiBaseUrl).toString();
+  }
+
+  return pathname;
 }
 
 function syncTableActions() {
@@ -194,7 +203,6 @@ function renderRow(testCase, index) {
   if (!isEditing(index)) {
     return `
       <tr data-index="${index}">
-        <td>${formatDisplaySources(testCase.sources)}</td>
         <td>${formatDisplayValue(testCase.id)}</td>
         <td>${formatDisplayValue(testCase.title)}</td>
         <td>${formatDisplayValue(testCase.module)}</td>
@@ -215,7 +223,6 @@ function renderRow(testCase, index) {
 
   return `
     <tr data-index="${index}">
-      <td><input class="cell-input" data-field="sources" data-index="${index}" value="${escapeHtml(buildSourcesValue(testCase.sources))}" /></td>
       <td><input class="cell-input" data-field="id" data-index="${index}" value="${escapeHtml(testCase.id)}" /></td>
       <td><input class="cell-input" data-field="title" data-index="${index}" value="${escapeHtml(testCase.title)}" /></td>
       <td><input class="cell-input" data-field="module" data-index="${index}" value="${escapeHtml(testCase.module)}" /></td>
@@ -251,7 +258,7 @@ function renderTable() {
   if (!Array.isArray(currentTestCases) || currentTestCases.length === 0) {
     resultsBody.innerHTML = `
       <tr class="empty-row">
-        <td colspan="11">No test cases yet. Upload one or more screenshots, generate a suite, or add a new test case.</td>
+        <td colspan="10">No test cases yet. Upload one or more screenshots, generate a suite, or add a new test case.</td>
       </tr>
     `;
     return;
@@ -271,7 +278,6 @@ function cancelEditingRow() {
 }
 
 function saveEditingRow(index) {
-  updateRow(index, "sources", getValueFromCell(index, "sources"));
   updateRow(index, "id", getValueFromCell(index, "id"));
   updateRow(index, "title", getValueFromCell(index, "title"));
   updateRow(index, "module", getValueFromCell(index, "module"));
@@ -310,14 +316,6 @@ function updateRow(index, field, value) {
     current.steps = String(value)
       .split(/\r?\n+/)
       .map((step) => step.trim())
-      .filter(Boolean);
-    return;
-  }
-
-  if (field === "sources") {
-    current.sources = String(value)
-      .split("|")
-      .map((source) => source.trim())
       .filter(Boolean);
     return;
   }
@@ -712,7 +710,6 @@ function ensureClientDepth() {
 
 function toTableRows(testCases) {
   return testCases.map((testCase) => [
-    Array.isArray(testCase.sources) ? testCase.sources.join(" | ") : "",
     testCase.id,
     testCase.title,
     testCase.module,
@@ -892,7 +889,7 @@ function buildDocxDocumentXml() {
           <w:insideV w:val="single" w:sz="6" w:space="0"/>
         </w:tblBorders>
       </w:tblPr>
-      <w:tblGrid>${TABLE_HEADERS.map(() => '<w:gridCol w:w="1080"/>').join("")}</w:tblGrid>
+      <w:tblGrid>${TABLE_HEADERS.map(() => '<w:gridCol w:w="1200"/>').join("")}</w:tblGrid>
       ${tableRows}
     </w:tbl>
     <w:sectPr>
@@ -1076,7 +1073,7 @@ function resetState() {
   sourceNote.textContent = "The generated rows will appear here.";
   resultsBody.innerHTML = `
     <tr class="empty-row">
-      <td colspan="11">No test cases yet. Upload one or more screenshots and click Generate test suite.</td>
+      <td colspan="10">No test cases yet. Upload one or more screenshots and click Generate test suite.</td>
     </tr>
   `;
   setStatus("Upload one or more screenshots to start analyzing.");
@@ -1152,7 +1149,7 @@ async function analyzeScreenshot() {
   setStatus("Generating a suite from the screenshots...", "busy");
 
   try {
-    const response = await fetch("/api/analyze", {
+    const response = await fetch(buildApiUrl("/api/analyze"), {
       method: "POST",
       headers: {
         "Content-Type": "application/json"

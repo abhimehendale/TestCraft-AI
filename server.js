@@ -7,9 +7,29 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const publicDir = path.join(__dirname, "public");
 const port = Number(process.env.PORT || 3000);
-const host = process.env.HOST || "127.0.0.1";
+const host = process.env.HOST || "0.0.0.0";
 const openaiApiKey = process.env.OPENAI_API_KEY || "";
 const openaiModel = process.env.OPENAI_MODEL || "gpt-4.1-mini";
+const publicApiBaseUrl = process.env.PUBLIC_API_BASE_URL || "";
+const corsOrigins = [
+  ...new Set(
+    [
+      "http://localhost:3000",
+      "http://127.0.0.1:3000",
+      "http://localhost:4173",
+      "http://127.0.0.1:4173",
+      "http://localhost:5173",
+      "http://127.0.0.1:5173",
+      "http://localhost:8080",
+      "http://127.0.0.1:8080",
+      ...(process.env.CORS_ORIGINS || "")
+        .split(",")
+        .map((origin) => origin.trim())
+        .filter(Boolean),
+      process.env.CORS_ORIGIN || ""
+    ].filter(Boolean)
+  )
+];
 
 const mimeTypes = new Map([
   [".html", "text/html; charset=utf-8"],
@@ -86,6 +106,36 @@ function sendText(res, statusCode, text) {
     "Cache-Control": "no-store"
   });
   res.end(text);
+}
+
+function isCorsOriginAllowed(origin) {
+  return Boolean(origin && (corsOrigins.includes("*") || corsOrigins.includes(origin)));
+}
+
+function applyCorsHeaders(req, res) {
+  const origin = req.headers.origin;
+  if (!isCorsOriginAllowed(origin)) {
+    return false;
+  }
+
+  res.setHeader("Access-Control-Allow-Origin", origin);
+  res.setHeader("Vary", "Origin");
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Max-Age", "86400");
+  return true;
+}
+
+function sendConfig(res) {
+  res.writeHead(200, {
+    "Content-Type": "application/javascript; charset=utf-8",
+    "Cache-Control": "no-store"
+  });
+  res.end(
+    `window.__TESTCRAFT_CONFIG__ = ${JSON.stringify({
+      apiBaseUrl: publicApiBaseUrl
+    })};`
+  );
 }
 
 function parseDataUrl(dataUrl) {
@@ -193,6 +243,14 @@ async function handleAnalyze(req, res) {
   }
 }
 
+function handleHealth(req, res) {
+  return sendJson(res, 200, {
+    status: "ok",
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString()
+  });
+}
+
 async function serveStatic(req, res) {
   const requestPath = req.url === "/" ? "/index.html" : req.url.split("?")[0];
   const safePath = path.normalize(requestPath).replace(/^(\.\.(\/|\\|$))+/, "");
@@ -216,6 +274,27 @@ async function serveStatic(req, res) {
 }
 
 export const server = http.createServer((req, res) => {
+  applyCorsHeaders(req, res);
+
+  if (req.method === "OPTIONS") {
+    if (isCorsOriginAllowed(req.headers.origin)) {
+      res.writeHead(204, {
+        "Cache-Control": "no-store"
+      });
+      return void res.end();
+    }
+
+    return void sendText(res, 403, "Forbidden");
+  }
+
+  if (req.method === "GET" && req.url === "/config.js") {
+    return void sendConfig(res);
+  }
+
+  if (req.method === "GET" && req.url === "/health") {
+    return void handleHealth(req, res);
+  }
+
   if (req.method === "POST" && req.url === "/api/analyze") {
     return void handleAnalyze(req, res);
   }

@@ -4,6 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TestCraft AI</title>
+    <link
+      rel="icon"
+      href='data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"%3E%3Crect width="64" height="64" rx="16" fill="%23184e77"/%3E%3Cpath d="M16 46L29 18h6l13 28h-7l-2.7-6h-15.6L20 46h-4zm11.2-11h9.6L32 24.8 27.2 35z" fill="%23fff"/%3E%3Cpath d="M41 20h7v24h-7z" fill="%23b85c38"/%3E%3C/svg%3E'
+    />
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
@@ -80,7 +84,6 @@
           <table>
             <thead>
               <tr>
-                <th>Sources</th>
                 <th>ID</th>
                 <th>Title</th>
                 <th>Module</th>
@@ -95,7 +98,7 @@
             </thead>
             <tbody id="resultsBody">
               <tr class="empty-row">
-                <td colspan="11">
+                <td colspan="10">
                   No test cases yet. Upload one or more screenshots and click Generate test suite.
                 </td>
               </tr>
@@ -109,6 +112,7 @@
       </section>
     </main>
 
+    <script src="/config.js"></script>
     <script src="/app.js" type="module"></script>
   </body>
 </html>
