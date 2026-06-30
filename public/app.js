@@ -11,6 +11,15 @@ const docxButton = document.getElementById("docxButton");
 const statusText = document.getElementById("statusText");
 const resultsBody = document.getElementById("resultsBody");
 const sourceNote = document.getElementById("sourceNote");
+const generateScriptButton = document.getElementById("generateScriptButton");
+const copyScriptButton = document.getElementById("copyScriptButton");
+const downloadScriptButton = document.getElementById("downloadScriptButton");
+const scriptLanguageSelect = document.getElementById("scriptLanguageSelect");
+const baseUrlInput = document.getElementById("baseUrlInput");
+const scriptViewer = document.getElementById("scriptViewer");
+const scriptFileName = document.getElementById("scriptFileName");
+const scriptWarning = document.getElementById("scriptWarning");
+const selectorTableBody = document.getElementById("selectorTableBody");
 const downloadButton = document.getElementById("downloadButton");
 const toast = document.getElementById("toast");
 const appConfig = window.__TESTCRAFT_CONFIG__ || {};
@@ -31,6 +40,7 @@ const ZIP_TEXT_ENCODER = new TextEncoder();
 
 let selectedAssets = [];
 let latestResult = null;
+let latestScreenshotAnalysis = null;
 let currentSuite = {
   suite_name: "",
   suite_summary: "",
@@ -38,6 +48,10 @@ let currentSuite = {
 };
 let currentTestCases = [];
 let editingRowIndex = null;
+let generatedPlaywrightScript = "";
+let generatedPlaywrightFileName = "generated-test.spec.ts";
+let generatedSelectorConfidence = [];
+let generatedScriptWarnings = [];
 
 function escapeHtml(value) {
   return String(value ?? "")
@@ -125,6 +139,9 @@ function syncTableActions() {
   downloadButton.disabled = !hasRows;
   copyTableButton.disabled = !hasRows;
   docxButton.disabled = !hasRows;
+  if (generateScriptButton) {
+    generateScriptButton.disabled = !hasRows;
+  }
 }
 
 function normalizeTestCase(testCase = {}, index = 0) {
@@ -717,7 +734,27 @@ function syncSuiteFromResult(data) {
     field_inventory: Array.isArray(data?.field_inventory) ? data.field_inventory : []
   };
   currentTestCases = normalizeCases(data?.test_cases);
+  latestScreenshotAnalysis = data?.screenshot_analysis || data?.screenshotAnalysis || null;
   editingRowIndex = null;
+}
+
+function normalizeSelectorConfidenceEntry(entry = {}) {
+  return {
+    element: String(entry.element || entry.elementName || "UI element"),
+    selector: String(entry.selector || entry.likelySelector || ""),
+    confidence: String(entry.confidence || "medium").toLowerCase(),
+    reason: String(entry.reason || "")
+  };
+}
+
+function syncScriptResult(data) {
+  generatedPlaywrightScript = String(data?.script || data?.playwrightScript || "");
+  generatedPlaywrightFileName = String(data?.fileName || data?.file_name || buildScriptFileName(normalizeScriptLanguage(scriptLanguageSelect?.value || "typescript")));
+  generatedSelectorConfidence = Array.isArray(data?.selectorConfidence || data?.selector_confidence)
+    ? (data.selectorConfidence || data.selector_confidence).map((entry) => normalizeSelectorConfidenceEntry(entry))
+    : [];
+  generatedScriptWarnings = Array.isArray(data?.warnings) ? data.warnings.map((warning) => String(warning)) : [];
+  renderGeneratedScript();
 }
 
 function ensureClientDepth() {
@@ -781,6 +818,131 @@ function triggerDownload(blob, filename) {
   anchor.download = filename;
   anchor.click();
   URL.revokeObjectURL(url);
+}
+
+function normalizeScriptLanguage(value) {
+  return String(value || "typescript").toLowerCase() === "javascript" ? "javascript" : "typescript";
+}
+
+function buildDefaultBaseUrl() {
+  return "https://example.com";
+}
+
+function buildScriptBaseUrl() {
+  const value = String(baseUrlInput?.value || "").trim();
+  return value || buildDefaultBaseUrl();
+}
+
+function buildScriptFileName(language = "typescript") {
+  return language === "javascript" ? "generated-test.spec.js" : "generated-test.spec.ts";
+}
+
+function updateScriptFileName() {
+  const language = normalizeScriptLanguage(scriptLanguageSelect?.value || "typescript");
+  generatedPlaywrightFileName = buildScriptFileName(language);
+  if (scriptFileName) {
+    scriptFileName.textContent = generatedPlaywrightFileName;
+  }
+}
+
+function escapeRegExp(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function highlightPlaywrightCode(code) {
+  const escaped = escapeHtml(code);
+  const commentPattern = /(^|\n)(\s*\/\/.*)/g;
+  const stringPattern = /('(?:\\.|[^'\\])*'|"(?:\\.|[^"\\])*"|`(?:\\.|[^`\\])*`)/g;
+  const keywordPattern = /\b(import|from|test|describe|async|await|const|let|var|if|else|return|new|try|catch|throw|expect|process|env|true|false|null|undefined)\b/g;
+
+  return escaped
+    .replace(commentPattern, (_, prefix, comment) => `${prefix}<span class="code-comment">${comment}</span>`)
+    .replace(stringPattern, '<span class="code-string">$1</span>')
+    .replace(keywordPattern, '<span class="code-keyword">$1</span>');
+}
+
+function confidenceClass(confidence) {
+  const normalized = String(confidence || "").toLowerCase();
+  if (normalized === "high") {
+    return "confidence-high";
+  }
+  if (normalized === "low") {
+    return "confidence-low";
+  }
+  return "confidence-medium";
+}
+
+function renderScriptWarnings(warnings = []) {
+  if (!scriptWarning) {
+    return;
+  }
+
+  const list = Array.isArray(warnings) ? warnings.filter(Boolean) : [];
+  if (!list.length) {
+    scriptWarning.classList.add("hidden");
+    scriptWarning.textContent = "";
+    return;
+  }
+
+  scriptWarning.textContent = list.join(" ");
+  scriptWarning.classList.remove("hidden");
+}
+
+function renderSelectorConfidenceTable(entries = []) {
+  if (!selectorTableBody) {
+    return;
+  }
+
+  const rows = Array.isArray(entries) ? entries : [];
+  if (!rows.length) {
+    selectorTableBody.innerHTML = `
+      <tr class="empty-row">
+        <td colspan="4">Generate a Playwright script to see AI-predicted selectors here.</td>
+      </tr>
+    `;
+    return;
+  }
+
+  selectorTableBody.innerHTML = rows
+    .map(
+      (entry) => `
+        <tr>
+          <td>${escapeHtml(entry.element || "—")}</td>
+          <td><code>${escapeHtml(entry.selector || "—")}</code></td>
+          <td><span class="confidence-pill ${confidenceClass(entry.confidence)}">${escapeHtml(entry.confidence || "medium")}</span></td>
+          <td>${escapeHtml(entry.reason || "Selector inferred from screenshot context.")}</td>
+        </tr>
+      `
+    )
+    .join("");
+}
+
+function renderGeneratedScript() {
+  if (!scriptViewer) {
+    return;
+  }
+
+  const code = generatedPlaywrightScript || "Generate test cases first, then click Generate Playwright Script.";
+  scriptViewer.innerHTML = highlightPlaywrightCode(code);
+  if (copyScriptButton) {
+    copyScriptButton.disabled = !generatedPlaywrightScript;
+  }
+  if (downloadScriptButton) {
+    downloadScriptButton.disabled = !generatedPlaywrightScript;
+  }
+  if (scriptFileName) {
+    scriptFileName.textContent = generatedPlaywrightFileName || buildScriptFileName(normalizeScriptLanguage(scriptLanguageSelect?.value || "typescript"));
+  }
+  renderSelectorConfidenceTable(generatedSelectorConfidence);
+  renderScriptWarnings(generatedScriptWarnings);
+}
+
+function resetGeneratedScriptState() {
+  generatedPlaywrightScript = "";
+  generatedSelectorConfidence = [];
+  generatedScriptWarnings = [];
+  generatedPlaywrightFileName = buildScriptFileName(normalizeScriptLanguage(scriptLanguageSelect?.value || "typescript"));
+  renderGeneratedScript();
 }
 
 async function copyTextToClipboard(text) {
@@ -1078,12 +1240,14 @@ function buildDocxBlob() {
 function resetState() {
   selectedAssets = [];
   latestResult = null;
+  latestScreenshotAnalysis = null;
   currentSuite = {
     suite_name: "",
     suite_summary: "",
     field_inventory: []
   };
   currentTestCases = [];
+  resetGeneratedScriptState();
   fileInput.value = "";
   previewWrap.classList.add("hidden");
   previewGrid.innerHTML = "";
@@ -1145,6 +1309,7 @@ async function handleSelection(fileList) {
   }
 
   selectedAssets = await readFilesAsAssets(files);
+  resetGeneratedScriptState();
   renderPreviews(selectedAssets);
   fileName.textContent = files.length === 1 ? files[0].name : `${files.length} screenshots selected`;
   previewWrap.classList.remove("hidden");
@@ -1191,6 +1356,7 @@ async function analyzeScreenshot() {
 
     latestResult = data;
     syncSuiteFromResult(data);
+    resetGeneratedScriptState();
     ensureClientDepth();
     renderTable();
     const fieldCount = Array.isArray(data.field_inventory) ? data.field_inventory.length : 0;
@@ -1230,6 +1396,107 @@ function downloadDocx() {
   setStatus("Exported the current table as DOCX.", "success");
 }
 
+function buildPlaywrightRequestBody() {
+  const language = normalizeScriptLanguage(scriptLanguageSelect?.value || "typescript");
+  return {
+    testCases: currentTestCases.map((testCase) => ({
+      title: testCase.title,
+      steps: Array.isArray(testCase.steps) ? testCase.steps : [],
+      expectedResult: testCase.expected_result
+    })),
+    screenshotAnalysis: latestScreenshotAnalysis || {},
+    language,
+    baseUrl: buildScriptBaseUrl(),
+    testFileName: buildScriptFileName(language)
+  };
+}
+
+async function generatePlaywrightScript() {
+  if (!currentTestCases.length) {
+    setStatus("Please generate test cases first.", "error");
+    return;
+  }
+
+  if (generateScriptButton) {
+    generateScriptButton.disabled = true;
+  }
+  if (copyScriptButton) {
+    copyScriptButton.disabled = true;
+  }
+  if (downloadScriptButton) {
+    downloadScriptButton.disabled = true;
+  }
+  setStatus("Generating Playwright script from the current test cases...", "busy");
+
+  try {
+    const response = await fetch(buildApiUrl("/api/generate-playwright-script"), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(buildPlaywrightRequestBody())
+    });
+
+    let data = {};
+    try {
+      data = await response.json();
+    } catch {
+      throw new Error("Could not parse Playwright script response.");
+    }
+
+    if (!response.ok) {
+      throw new Error(data.error || "Script generation failed.");
+    }
+
+    syncScriptResult(data);
+
+    const warningCount = Array.isArray(generatedScriptWarnings) ? generatedScriptWarnings.length : 0;
+    setStatus(
+      warningCount
+        ? `Generated ${generatedPlaywrightFileName} with ${warningCount} warning${warningCount === 1 ? "" : "s"}.`
+        : `Generated ${generatedPlaywrightFileName}.`,
+      "success"
+    );
+    if (warningCount) {
+      showToast("Script generated with AI selector warnings");
+    } else {
+      showToast("Playwright script generated");
+    }
+  } catch (error) {
+    generatedPlaywrightScript = "";
+    generatedSelectorConfidence = [];
+    generatedScriptWarnings = [error instanceof Error ? error.message : "Script generation failed."];
+    renderGeneratedScript();
+    setStatus(error instanceof Error ? error.message : "Script generation failed.", "error");
+  } finally {
+    if (generateScriptButton) {
+      generateScriptButton.disabled = !currentTestCases.length;
+    }
+  }
+}
+
+async function copyPlaywrightScript() {
+  if (!generatedPlaywrightScript) {
+    setStatus("Please generate a Playwright script first.", "error");
+    return;
+  }
+
+  await copyTextToClipboard(generatedPlaywrightScript);
+  setStatus("Copied the Playwright script to the clipboard.", "success");
+  showToast("Playwright script copied");
+}
+
+function downloadPlaywrightScript() {
+  if (!generatedPlaywrightScript) {
+    setStatus("Please generate a Playwright script first.", "error");
+    return;
+  }
+
+  const blob = new Blob([generatedPlaywrightScript], { type: "text/plain;charset=utf-8" });
+  triggerDownload(blob, generatedPlaywrightFileName || buildScriptFileName(normalizeScriptLanguage(scriptLanguageSelect?.value || "typescript")));
+  setStatus(`Downloaded ${generatedPlaywrightFileName || "generated-test.spec.ts"}.`, "success");
+}
+
 fileInput.addEventListener("change", async (event) => {
   const files = event.target.files;
   if (files?.length) {
@@ -1249,6 +1516,36 @@ copyTableButton.addEventListener("click", async () => {
 });
 docxButton.addEventListener("click", downloadDocx);
 addButton.addEventListener("click", addBlankCase);
+if (generateScriptButton) {
+  generateScriptButton.addEventListener("click", () => {
+    generatePlaywrightScript().catch((error) => {
+      setStatus(error instanceof Error ? error.message : "Script generation failed.", "error");
+    });
+  });
+}
+if (copyScriptButton) {
+  copyScriptButton.addEventListener("click", () => {
+    copyPlaywrightScript().catch((error) => {
+      setStatus(error instanceof Error ? error.message : "Unable to copy the script.", "error");
+    });
+  });
+}
+if (downloadScriptButton) {
+  downloadScriptButton.addEventListener("click", downloadPlaywrightScript);
+}
+if (scriptLanguageSelect) {
+  scriptLanguageSelect.addEventListener("change", () => {
+    updateScriptFileName();
+    renderGeneratedScript();
+  });
+}
+if (baseUrlInput) {
+  baseUrlInput.addEventListener("input", () => {
+    if (generatedPlaywrightScript) {
+      setStatus("Base URL updated. Generate the script again to apply the new URL.", "info");
+    }
+  });
+}
 
 resultsBody.addEventListener("click", (event) => {
   const target = event.target;
@@ -1308,3 +1605,5 @@ dropzone.addEventListener("drop", async (event) => {
 });
 
 resetState();
+updateScriptFileName();
+renderGeneratedScript();

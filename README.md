@@ -2,6 +2,8 @@
 
 TestCraft AI is an AI-powered screenshot-to-test-case generator. You upload one or more UI screenshots, the app analyzes the visible interface, and it produces a structured QA test suite in a clean table that you can review, edit, copy, and export.
 
+It also generates a starter Playwright script from the same screenshot-driven analysis, with predicted selectors, confidence notes, and downloadable `.spec.ts` or `.spec.js` output.
+
 ## Portfolio Summary
 
 This project was built to demonstrate an end-to-end product workflow for QA and test automation teams:
@@ -10,6 +12,7 @@ This project was built to demonstrate an end-to-end product workflow for QA and 
 - AI-based UI understanding and test-case generation
 - Editable tabular review workflow
 - CSV and DOCX export
+- Playwright script generation with selector confidence tracking
 - Copy actions for individual rows and the full table
 - Single-service deployment with Node.js
 
@@ -25,6 +28,7 @@ It is a good portfolio project because it combines product thinking, frontend UX
 - Lets you add new test cases manually.
 - Lets you copy a single row or the full table.
 - Exports the final table to CSV or DOCX.
+- Generates a downloadable Playwright test file from the current test cases.
 - Supports a health check endpoint for deployment monitoring.
 
 ## Tech Stack
@@ -44,6 +48,7 @@ The app is intentionally simple and deployable as one service:
 - `public/styles.css` handles the entire visual design
 - `public/app.js` handles uploads, table rendering, editing, copy actions, and export actions
 - `server.js` serves the frontend, exposes the analysis API, and proxies requests to OpenAI
+- `server.js` also exposes `POST /api/generate-playwright-script` for script generation
 
 The frontend and backend are served from the same Node process, which makes deployment straightforward.
 
@@ -57,6 +62,7 @@ The frontend and backend are served from the same Node process, which makes depl
 - Copy full table action
 - CSV export
 - DOCX export
+- Playwright code viewer, copy action, and download action
 - Health check endpoint at `/health`
 - Production-friendly environment-based configuration
 

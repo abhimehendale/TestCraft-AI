@@ -7,6 +7,7 @@ This document is the working memory for TestCraft AI. Keep it updated when the p
 - Build a system where a user uploads one or more screenshots of a target system.
 - The system generates a QA test suite in table form.
 - The table should be reviewable, editable, and exportable.
+- The generated test cases should also be convertible into a downloadable Playwright script.
 - The target use case is screenshot-driven test case generation for UI flows, forms, modal dialogs, uploads, and validation-heavy screens.
 
 ## Current User Preferences
@@ -23,6 +24,7 @@ This document is the working memory for TestCraft AI. Keep it updated when the p
 - Export must reflect the current edited table state.
 - Support full-table copy in tabular form.
 - Support both CSV and DOCX export with short readable filenames.
+- Support TypeScript and JavaScript Playwright downloads with selector-confidence notes.
 - Keep the interface clean and QA-oriented rather than decorative.
 
 ## Current UI Behavior
@@ -60,6 +62,7 @@ This document is the working memory for TestCraft AI. Keep it updated when the p
     - responsive layout
     - error states
 - The backend also expands results if the raw model output is too shallow.
+- The backend now also generates a Playwright script endpoint from the current test cases plus screenshot-analysis hints.
 
 ## Screenshot Examples Observed So Far
 

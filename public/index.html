@@ -118,6 +118,77 @@
           The generated rows will appear here.
         </div>
       </section>
+
+      <section class="results-card script-card">
+        <div class="results-header">
+          <div>
+            <span class="eyebrow">Automation</span>
+            <h2>Generated Playwright Script</h2>
+          </div>
+          <div class="toolbar script-toolbar">
+            <label class="inline-control" for="scriptLanguageSelect">
+              <span class="label">Language</span>
+              <select id="scriptLanguageSelect">
+                <option value="typescript" selected>TypeScript</option>
+                <option value="javascript">JavaScript</option>
+              </select>
+            </label>
+            <label class="inline-control base-url-control" for="baseUrlInput">
+              <span class="label">Base URL</span>
+              <input id="baseUrlInput" type="url" placeholder="https://example.com" />
+            </label>
+            <button class="primary-button" id="generateScriptButton" type="button" disabled>
+              Generate Playwright Script
+            </button>
+            <button class="secondary-button" id="copyScriptButton" type="button" disabled>
+              Copy Script
+            </button>
+            <button class="secondary-button" id="downloadScriptButton" type="button" disabled>
+              Download Script
+            </button>
+          </div>
+        </div>
+
+        <div class="warning-banner hidden" id="scriptWarning" role="alert" aria-live="polite"></div>
+
+        <div class="script-grid">
+          <div class="script-viewer">
+            <div class="script-viewer-header">
+              <div>
+                <span class="label">Code Viewer</span>
+                <strong id="scriptFileName">generated-test.spec.ts</strong>
+              </div>
+            </div>
+            <pre class="code-viewer"><code id="scriptViewer">Generate test cases first, then click Generate Playwright Script.</code></pre>
+          </div>
+
+          <div class="selector-panel">
+            <div class="selector-panel-header">
+              <div>
+                <span class="label">Selector Confidence</span>
+                <p>AI-predicted selectors are shown here with confidence notes and reasons.</p>
+              </div>
+            </div>
+            <div class="selector-table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Element</th>
+                    <th>Predicted Selector</th>
+                    <th>Confidence</th>
+                    <th>Reason</th>
+                  </tr>
+                </thead>
+                <tbody id="selectorTableBody">
+                  <tr class="empty-row">
+                    <td colspan="4">Generate a Playwright script to see AI-predicted selectors here.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
 
     <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
