@@ -30,6 +30,7 @@ body {
     radial-gradient(circle at top left, rgba(184, 92, 56, 0.18), transparent 28%),
     radial-gradient(circle at top right, rgba(24, 78, 119, 0.14), transparent 24%),
     linear-gradient(180deg, var(--bg), var(--bg-alt));
+  overflow-x: hidden;
 }
 
 button,
@@ -57,9 +58,13 @@ input {
 .hero-card {
   padding: 28px;
   display: grid;
-  grid-template-columns: 1.4fr 0.9fr;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.9fr);
   gap: 24px;
   align-items: stretch;
+}
+
+.hero-card > * {
+  min-width: 0;
 }
 
 .hero-copy h1,
@@ -146,6 +151,7 @@ input {
   display: flex;
   flex-direction: column;
   gap: 14px;
+  min-width: 0;
 }
 
 .upload-dropzone {
@@ -207,6 +213,8 @@ input {
 .upload-art strong {
   display: block;
   font-size: 1.1rem;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .upload-art p,
@@ -214,6 +222,12 @@ input {
 .preview-meta .label,
 .source-note {
   color: var(--muted);
+}
+
+.upload-art p {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
 }
 
 .preview-wrap {
