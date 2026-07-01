@@ -39,8 +39,8 @@ input {
 }
 
 .page-shell {
-  width: min(1220px, calc(100% - 32px));
-  margin: 24px auto 40px;
+  width: min(1320px, calc(100% - 24px));
+  margin: 20px auto 36px;
   display: grid;
   gap: 20px;
 }
@@ -724,7 +724,7 @@ tbody tr:hover {
 
 @media (max-width: 720px) {
   .page-shell {
-    width: min(100% - 20px, 1220px);
+    width: min(100% - 16px, 1320px);
     margin-top: 10px;
   }
 
